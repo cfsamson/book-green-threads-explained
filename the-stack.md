@@ -148,6 +148,7 @@ If you see anything you don't recognize in this code, relax, we will go through 
 use std::io::Write;
 
 const SSIZE: isize = 1024;
+const SYSTEM_V_ABI_STACK_FRAME_SIZE: isize = 16;
 static mut S_PTR: *const u8 = 0 as *const u8;
 
 #[derive(Debug, Default)]
@@ -203,9 +204,12 @@ fn main() {
 
     unsafe {
         S_PTR = stack_ptr;
-        std::ptr::write(stack_ptr.offset(SSIZE - 16) as *mut u64, hello as u64);
+        std::ptr::write(
+            stack_ptr.offset(SSIZE - SYSTEM_V_ABI_STACK_FRAME_SIZE) as *mut u64,
+            hello as u64,
+        );
         print_stack("BEFORE.txt");
-        ctx.rsp = stack_ptr.offset(SSIZE - 16) as u64;
+        ctx.rsp = stack_ptr.offset(SSIZE - SYSTEM_V_ABI_STACK_FRAME_SIZE) as u64;
         gt_switch(&mut ctx);
     }
 }
